@@ -411,3 +411,60 @@ window.handleImportBackup = function(event) {
   reader.readAsText(file);
 };
 
+// MongoDB Settings Modal Controls
+window.openMongoSettingsModal = function() {
+  const modal = document.getElementById("mongo-modal-overlay");
+  if (!modal) return;
+
+  const apiUrlInput = document.getElementById("mongo-api-url");
+  const appIdInput = document.getElementById("mongo-app-id");
+  const statusText = document.getElementById("mongo-status-text");
+
+  if (apiUrlInput) apiUrlInput.value = localStorage.getItem("nitya_mongo_api_url") || "";
+  if (appIdInput) appIdInput.value = localStorage.getItem("nitya_mongo_app_id") || "";
+
+  // Check health of local or configured API
+  const baseUrl = StorageManager.getApiBaseUrl();
+  fetch(`${baseUrl}/api/health`).then(r => r.json()).then(data => {
+    if (data && data.mongodbConnected) {
+      statusText.textContent = `Connected to MongoDB Atlas ("${data.database}")`;
+      statusText.style.color = "#15803D";
+    } else {
+      statusText.textContent = `Local Node server active, awaiting MONGODB_URI in .env`;
+      statusText.style.color = "#B45309";
+    }
+  }).catch(() => {
+    statusText.textContent = `Running in Static Browser Mode (GitHub Pages)`;
+    statusText.style.color = "var(--text-secondary)";
+  });
+
+  modal.classList.add("active");
+};
+
+window.closeMongoSettingsModal = function() {
+  document.getElementById("mongo-modal-overlay")?.classList.remove("active");
+};
+
+window.saveMongoSettings = function() {
+  const apiUrl = document.getElementById("mongo-api-url")?.value.trim() || "";
+  const appId = document.getElementById("mongo-app-id")?.value.trim() || "";
+
+  if (apiUrl) localStorage.setItem("nitya_mongo_api_url", apiUrl);
+  else localStorage.removeItem("nitya_mongo_api_url");
+
+  if (appId) localStorage.setItem("nitya_mongo_app_id", appId);
+  else localStorage.removeItem("nitya_mongo_app_id");
+
+  if (window.MONGO_CONFIG) {
+    window.MONGO_CONFIG.apiUrl = apiUrl;
+    window.MONGO_CONFIG.atlasAppId = appId;
+  }
+
+  showToast("MongoDB settings saved!", "success");
+  closeMongoSettingsModal();
+
+  // Try sync
+  StorageManager.syncWithMongoDB();
+};
+
+

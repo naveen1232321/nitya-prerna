@@ -487,12 +487,50 @@ const INITIAL_POSTS = [
 const STORAGE_KEY = "nitya_prerna_content_v1";
 
 const StorageManager = {
-  // Initialize storage with starter posts if not present
+  // Initialize storage with starter posts if not present, and trigger MongoDB sync
   init() {
     if (typeof window === "undefined") return;
     const existing = localStorage.getItem(STORAGE_KEY);
     if (!existing) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_POSTS));
+    }
+    // Attempt background sync with MongoDB
+    setTimeout(() => this.syncWithMongoDB(), 100);
+  },
+
+  // Get active API base URL (either same origin if server.js is running, or from config)
+  getApiBaseUrl() {
+    if (typeof window === "undefined") return "";
+    if (window.MONGO_CONFIG && window.MONGO_CONFIG.apiUrl) {
+      return window.MONGO_CONFIG.apiUrl.replace(/\/$/, "");
+    }
+    // If running on localhost or custom domain with backend
+    if (window.location.protocol.startsWith("http") && (window.location.port === "3000" || window.location.hostname === "localhost")) {
+      return "";
+    }
+    return "";
+  },
+
+  // Background sync with MongoDB
+  async syncWithMongoDB() {
+    if (typeof window === "undefined" || !window.fetch) return;
+    try {
+      const baseUrl = this.getApiBaseUrl();
+      const res = await fetch(`${baseUrl}/api/posts`, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.mongodb && Array.isArray(data.posts) && data.posts.length > 0) {
+          // Merge MongoDB posts with local cache
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.posts));
+          document.dispatchEvent(new CustomEvent("nitya:data-updated", { detail: { source: "mongodb" } }));
+          console.log(`🍃 Synced ${data.posts.length} articles from MongoDB!`);
+        }
+      }
+    } catch (err) {
+      // Graceful offline/GitHub Pages fallback - no error thrown
     }
   },
 
@@ -643,6 +681,23 @@ const StorageManager = {
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+
+    // Async save to MongoDB in background
+    if (typeof window !== "undefined" && window.fetch) {
+      const baseUrl = this.getApiBaseUrl();
+      fetch(`${baseUrl}/api/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(post)
+      }).then(r => r.json()).then(res => {
+        if (res && res.success) {
+          console.log("🍃 Post saved to MongoDB:", post.id);
+        }
+      }).catch(e => {
+        // Fallback gracefully
+      });
+    }
+
     return post;
   },
 
@@ -651,6 +706,15 @@ const StorageManager = {
     const all = this.getAll(true);
     const filtered = all.filter(p => p.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+
+    // Async delete from MongoDB in background
+    if (typeof window !== "undefined" && window.fetch) {
+      const baseUrl = this.getApiBaseUrl();
+      fetch(`${baseUrl}/api/posts/${encodeURIComponent(id)}`, {
+        method: "DELETE"
+      }).catch(e => {});
+    }
+
     return true;
   },
 

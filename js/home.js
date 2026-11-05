@@ -15,6 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
   renderSpotlightPersonality();
 });
 
+// Refresh on MongoDB live sync
+document.addEventListener("nitya:data-updated", () => {
+  renderTodaysHighlights();
+  renderRecentPosts("All");
+  renderCalendarDays();
+  renderSpotlightPersonality();
+});
+
 // 1. Render Today's Highlights
 function renderTodaysHighlights() {
   const container = document.getElementById("todays-highlights-container");
