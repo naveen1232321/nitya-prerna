@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Inspiration & Thoughts — Nitya Prerna</title>
+  <meta name="description" content="Morning motivational thoughts, inspiring quotes from India's greatest minds, and daily reflections for clarity and purpose.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B65322' stroke-width='2'><path d='M12 2C8 6 4 11 4 16a8 8 0 0 0 16 0c0-5-4-10-8-14z'/></svg>">
+</head>
+<body>
+
+  <div id="site-header-root"></div>
+
+  <!-- Page Header -->
+  <section style="background-color:var(--bg-secondary); padding:4rem 0 3rem; border-bottom:1px solid var(--border-color); text-align:center;">
+    <div class="container">
+      <span class="section-tag">
+        <span>🌅</span> Daily Prerna
+      </span>
+      <h1>Daily Inspiration & Reflections</h1>
+      <div class="divider-ornament"><span>✦</span></div>
+      <p style="max-width:680px; margin:0 auto;">
+        Uplifting thoughts from Swami Vivekananda, Dr. APJ Abdul Kalam, Rabindranath Tagore, and ancient sages to infuse purpose and serenity into your everyday endeavors.
+      </p>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <section style="padding:4rem 0 6rem;">
+    <div class="container">
+      <!-- Search & Tag Filter Bar -->
+      <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:2.5rem; background:#fff; padding:1.25rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        <div style="flex-grow:1; max-width:400px; position:relative;">
+          <input type="text" id="daily-search-input" placeholder="Search daily reflections or authors..." class="form-control" style="padding-left:2.5rem;">
+          <span style="position:absolute; left:0.8rem; top:50%; transform:translateY(-50%); color:var(--text-muted); display:flex;">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </span>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="tag-filters">
+          <button class="tab-btn active" onclick="filterByTag('All', this)">All</button>
+          <button class="tab-btn" onclick="filterByTag('Motivation', this)">Motivation</button>
+          <button class="tab-btn" onclick="filterByTag('Swami Vivekananda', this)">Vivekananda</button>
+          <button class="tab-btn" onclick="filterByTag('Youth', this)">Youth</button>
+          <button class="tab-btn" onclick="filterByTag('Mindfulness', this)">Mindfulness</button>
+        </div>
+      </div>
+
+      <!-- Daily Posts Grid -->
+      <div class="posts-grid" id="daily-posts-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <div id="site-footer-root"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById("site-header-root").innerHTML = renderGlobalHeader('daily');
+    document.getElementById("site-footer-root").innerHTML = renderGlobalFooter();
+
+    let allDaily = StorageManager.getAll(false).filter(p => p.type === 'daily' || p.category === 'Daily Inspiration');
+    let currentTag = 'All';
+
+    function renderDaily(posts) {
+      const container = document.getElementById("daily-posts-container");
+      if (!container) return;
+
+      if (posts.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">${Icons.feather}</div>
+            <h3>No Daily Posts Found</h3>
+            <p>Try searching with another keyword or tag.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = posts.map(post => `
+        <article class="article-card">
+          <div class="article-card-image">
+            <img src="${post.coverImage || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'}" alt="${post.title}" loading="lazy">
+            <span class="card-category-badge">Daily Inspiration</span>
+          </div>
+          <div class="article-card-body">
+            <div class="article-card-meta">
+              <span>${Icons.calendar} ${formatDate(post.publishDate)}</span>
+              <span>•</span>
+              <span>${Icons.clock} ${post.readTime || '3 min'}</span>
+            </div>
+            ${post.quote ? `
+              <blockquote style="font-family:var(--font-serif); font-style:italic; font-size:1.15rem; color:var(--text-primary); margin-bottom:0.75rem; border-left:3px solid var(--accent-primary); padding-left:0.75rem;">
+                "${post.quote}"
+              </blockquote>
+              <span style="font-size:0.85rem; font-weight:700; color:var(--accent-primary); display:block; margin-bottom:0.85rem;">
+                — ${post.quoteAuthor || post.author || 'Inspiration'}
+              </span>
+            ` : ''}
+            <h3 class="article-card-title">
+              <a href="post.html?id=${post.id}">${post.title}</a>
+            </h3>
+            <p class="article-card-excerpt">
+              ${post.supportingThought || post.shortDescription}
+            </p>
+            <div class="article-card-footer">
+              <span class="article-author">By ${post.author || 'Editorial'}</span>
+              <a href="post.html?id=${post.id}" class="btn-link" style="font-weight:700;">
+                Read Reflection ${Icons.arrowRight}
+              </a>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function filterByTag(tag, btn) {
+      currentTag = tag;
+      document.querySelectorAll("#tag-filters .tab-btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const q = document.getElementById("daily-search-input").value.toLowerCase().trim();
+      let filtered = allDaily;
+
+      if (currentTag !== 'All') {
+        filtered = filtered.filter(p => p.tags && p.tags.some(t => t.toLowerCase().includes(currentTag.toLowerCase())));
+      }
+
+      if (q) {
+        filtered = filtered.filter(p => 
+          (p.title || "").toLowerCase().includes(q) ||
+          (p.quote || "").toLowerCase().includes(q) ||
+          (p.quoteAuthor || "").toLowerCase().includes(q) ||
+          (p.shortDescription || "").toLowerCase().includes(q)
+        );
+      }
+
+      renderDaily(filtered);
+    }
+
+    document.getElementById("daily-search-input").addEventListener("input", applyFilters);
+    renderDaily(allDaily);
+  </script>
+</body>
+</html>
+

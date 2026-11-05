@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indian Historical Dates & Anniversaries — Nitya Prerna</title>
+  <meta name="description" content="Explore monumental historical events, freedom struggle milestones, and anniversaries that occurred on this day in Indian history.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B65322' stroke-width='2'><path d='M12 2C8 6 4 11 4 16a8 8 0 0 0 16 0c0-5-4-10-8-14z'/></svg>">
+</head>
+<body>
+
+  <div id="site-header-root"></div>
+
+  <!-- Hero Header -->
+  <section style="background-color:var(--bg-secondary); padding:4rem 0 3rem; border-bottom:1px solid var(--border-color); text-align:center;">
+    <div class="container">
+      <span class="section-tag">
+        <span>🏛️</span> Indian History Chronology
+      </span>
+      <h1>Historical Dates & Anniversaries</h1>
+      <div class="divider-ornament"><span>✦</span></div>
+      <p style="max-width:700px; margin:0 auto;">
+        Discover what momentous events, declarations, scientific triumphs, and sacrifices occurred on any day of the year in India's glorious chronicle.
+      </p>
+    </div>
+  </section>
+
+  <!-- Filter & Date Selector -->
+  <section style="padding:3rem 0 6rem;">
+    <div class="container">
+      <!-- Date Picker Bar -->
+      <div style="background:#fff; border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; margin-bottom:3rem; box-shadow:var(--shadow-sm);">
+        <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1.5rem;">
+          <div>
+            <h3 style="font-size:1.25rem; margin-bottom:0.25rem;">Select Day & Month</h3>
+            <p style="font-size:0.9rem; color:var(--text-secondary);">Browse all events recorded for this calendar date across historical years.</p>
+          </div>
+
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <select id="hist-month-select" class="form-control" style="width:auto; min-width:150px; font-weight:600;">
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11" selected>November</option>
+              <option value="12">December</option>
+            </select>
+
+            <select id="hist-day-select" class="form-control" style="width:auto; min-width:90px; font-weight:600;">
+              <!-- 1 to 31 populated by JS -->
+            </select>
+
+            <button class="btn btn-primary" onclick="lookupHistoricalDate()">
+              Explore Date
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Jump Chips -->
+        <div style="margin-top:1.5rem; padding-top:1.25rem; border-top:1px solid var(--border-color); display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
+          <span style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Famous Dates:</span>
+          <button class="tab-btn" onclick="jumpToDate(11, 5)">Nov 5 (Today: Mangalyaan)</button>
+          <button class="tab-btn" onclick="jumpToDate(10, 2)">Oct 2 (Gandhi & Shastri)</button>
+          <button class="tab-btn" onclick="jumpToDate(8, 15)">Aug 15 (Independence Day)</button>
+          <button class="tab-btn" onclick="jumpToDate(1, 26)">Jan 26 (Republic Day)</button>
+        </div>
+      </div>
+
+      <!-- Results Header -->
+      <div style="margin-bottom:2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <span class="section-tag" style="margin-bottom:0.25rem;">Chronicle Archive</span>
+          <h2 id="hist-results-title">Events for November 5</h2>
+        </div>
+        <span id="hist-results-count" style="font-weight:600; color:var(--accent-primary);"></span>
+      </div>
+
+      <!-- Events List -->
+      <div id="hist-events-container" style="display:flex; flex-direction:column; gap:2rem;">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <div id="site-footer-root"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById("site-header-root").innerHTML = renderGlobalHeader('history');
+    document.getElementById("site-footer-root").innerHTML = renderGlobalFooter();
+
+    // Populate day select 1 to 31
+    const daySelect = document.getElementById("hist-day-select");
+    for (let d = 1; d <= 31; d++) {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      if (d === 5) opt.selected = true;
+      daySelect.appendChild(opt);
+    }
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    function lookupHistoricalDate() {
+      const m = parseInt(document.getElementById("hist-month-select").value);
+      const d = parseInt(document.getElementById("hist-day-select").value);
+      loadDateEvents(m, d);
+    }
+
+    function jumpToDate(m, d) {
+      document.getElementById("hist-month-select").value = m;
+      document.getElementById("hist-day-select").value = d;
+      loadDateEvents(m, d);
+    }
+
+    function loadDateEvents(month, day) {
+      const monthTitle = monthNames[month - 1];
+      document.getElementById("hist-results-title").textContent = `Historical Events on ${monthTitle} ${day}`;
+
+      const events = StorageManager.getByDate(month, day);
+      const container = document.getElementById("hist-events-container");
+      const countEl = document.getElementById("hist-results-count");
+
+      countEl.textContent = `${events.length} Historical Record${events.length === 1 ? '' : 's'}`;
+
+      if (events.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">${Icons.calendar}</div>
+            <h3>No Records on ${monthTitle} ${day}</h3>
+            <p style="max-width:500px; margin:0 auto 1.5rem;">
+              We do not currently have a historical milestone catalogued for ${monthTitle} ${day}. You can publish one easily in the Admin Dashboard!
+            </p>
+            <a href="admin.html" class="btn btn-secondary btn-sm">Add Event in Admin</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = events.map(ev => `
+        <article class="admin-card" style="padding:2rem; display:grid; grid-template-columns:1fr; gap:2rem;">
+          <div style="display:grid; grid-template-columns:1fr; gap:1.75rem;">
+            <div>
+              <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+                <span style="font-family:var(--font-heading); font-size:1.35rem; font-weight:700; color:var(--accent-secondary); background:var(--bg-dark); padding:0.25rem 0.75rem; border-radius:var(--radius-sm);">
+                  ${ev.historicalYear || 'Historical Epoch'}
+                </span>
+                <span class="highlight-badge badge-history" style="margin:0;">
+                  ${ev.eventType || 'Historical Milestone'}
+                </span>
+                ${ev.associatedPersonality ? `
+                  <span style="font-size:0.85rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.3rem;">
+                    ${Icons.user} ${ev.associatedPersonality}
+                  </span>
+                ` : ''}
+              </div>
+
+              <h2 style="font-size:1.6rem; margin-bottom:1rem;">
+                <a href="post.html?id=${ev.id}" style="color:var(--text-primary);">${ev.title}</a>
+              </h2>
+
+              <p style="font-size:1.05rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1.5rem;">
+                ${ev.shortDescription}
+              </p>
+
+              ${ev.historicalSignificance ? `
+                <div style="background:var(--bg-primary); border-left:4px solid var(--accent-primary); padding:1rem 1.25rem; border-radius:0 var(--radius-md) var(--radius-md) 0; margin-bottom:1.5rem;">
+                  <strong style="color:var(--accent-primary); display:block; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.25rem;">Significance</strong>
+                  <span style="color:var(--text-primary); font-size:0.95rem;">${ev.historicalSignificance}</span>
+                </div>
+              ` : ''}
+
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                <span style="font-size:0.82rem; color:var(--text-muted);">
+                  ${ev.sources ? `Source: ${ev.sources}` : ''}
+                </span>
+                <a href="post.html?id=${ev.id}" class="btn btn-primary btn-sm">
+                  Read Full Account ${Icons.arrowRight}
+                </a>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Default load today Nov 5
+    loadDateEvents(11, 5);
+  </script>
+</body>
+</html>
+

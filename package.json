@@ -1,0 +1,20 @@
+{
+  "name": "nitya-prerna",
+  "version": "1.0.0",
+  "description": "Nitya Prerna — Daily Inspiration, Indian History & Mythological Wisdom",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "daily-inspiration",
+    "indian-history",
+    "mythology",
+    "wisdom",
+    "vedic",
+    "culture"
+  ],
+  "author": "Nitya Prerna Team",
+  "license": "ISC"
+}

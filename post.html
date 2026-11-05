@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article — Nitya Prerna</title>
+  <meta name="description" content="Nitya Prerna - Daily Inspiration, Indian History & Mythological Wisdom">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B65322' stroke-width='2'><path d='M12 2C8 6 4 11 4 16a8 8 0 0 0 16 0c0-5-4-10-8-14z'/></svg>">
+</head>
+<body>
+
+  <div id="site-header-root"></div>
+
+  <!-- Main Article Container -->
+  <main id="article-main-content">
+    <!-- Populated dynamically by post.js -->
+    <div style="padding:6rem 0; text-align:center;">
+      <p>Loading article...</p>
+    </div>
+  </main>
+
+  <!-- Related Articles -->
+  <section style="background-color:var(--bg-secondary); padding:4.5rem 0; border-top:1px solid var(--border-color);">
+    <div class="container">
+      <div class="section-header" style="text-align:left; margin-bottom:2rem;">
+        <span class="section-tag">
+          <span>🌿</span> Explore Further
+        </span>
+        <h2>Related Wisdom & Stories</h2>
+      </div>
+
+      <div class="posts-grid" id="related-posts-grid">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <div id="site-footer-root"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById("site-header-root").innerHTML = renderGlobalHeader('');
+    document.getElementById("site-footer-root").innerHTML = renderGlobalFooter();
+
+    // Get post ID or slug from query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
+    const postSlug = urlParams.get('slug');
+
+    let post = null;
+    if (postId) {
+      post = StorageManager.getById(postId);
+    } else if (postSlug) {
+      post = StorageManager.getBySlug(postSlug);
+    }
+
+    // Fallback to first post if not specified
+    if (!post) {
+      const all = StorageManager.getAll(false);
+      post = all[0];
+    }
+
+    if (post) {
+      document.title = `${post.title} — Nitya Prerna`;
+
+      const mainEl = document.getElementById("article-main-content");
+      const currentUrl = window.location.href;
+
+      mainEl.innerHTML = `
+        <!-- Article Header -->
+        <header class="article-header">
+          <div class="container article-header-inner">
+            <div style="display:flex; gap:0.5rem; align-items:center; margin-bottom:1rem; flex-wrap:wrap;">
+              <span class="highlight-badge badge-inspiration" style="margin:0;">
+                ${post.category}
+              </span>
+              ${post.historicalYear ? `
+                <span class="highlight-badge badge-history" style="margin:0;">
+                  Year: ${post.historicalYear}
+                </span>
+              ` : ''}
+              ${post.scripture ? `
+                <span class="highlight-badge badge-commemoration" style="margin:0;">
+                  ${post.scripture}
+                </span>
+              ` : ''}
+            </div>
+
+            <h1 style="margin-bottom:1.25rem;">${post.title}</h1>
+
+            <p style="font-size:1.2rem; color:var(--text-secondary); line-height:1.6; margin-bottom:1.5rem; font-family:var(--font-serif); font-style:italic;">
+              ${post.shortDescription || ''}
+            </p>
+
+            <div class="article-header-meta">
+              <span><strong>Author:</strong> ${post.author || 'Prerna Editorial'}</span>
+              <span>•</span>
+              <span><strong>Date:</strong> ${formatDate(post.publishDate)}</span>
+              <span>•</span>
+              <span><strong>Read Time:</strong> ${post.readTime || '4 min read'}</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Article Featured Image -->
+        <div class="article-hero-image-wrap">
+          <img src="${post.coverImage || 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1200&q=80'}" alt="${post.title}" class="article-hero-image">
+        </div>
+
+        <!-- Article Prose Content -->
+        <article class="article-body-layout">
+          <!-- Quote Box if Daily -->
+          ${post.quote ? `
+            <blockquote style="font-family:var(--font-serif); font-style:italic; font-size:1.4rem; color:var(--text-primary); border-left:4px solid var(--accent-primary); background:var(--bg-secondary); padding:1.5rem 2rem; border-radius:0 var(--radius-md) var(--radius-md) 0; margin-bottom:2.5rem;">
+              "${post.quote}"
+              <span style="display:block; font-size:0.95rem; font-weight:700; color:var(--accent-primary); margin-top:0.75rem; font-style:normal;">
+                — ${post.quoteAuthor || post.author}
+              </span>
+            </blockquote>
+          ` : ''}
+
+          <!-- Sanskrit Verse Box if Mythology -->
+          ${post.sanskritText ? `
+            <div class="sanskrit-verse-box">
+              <span style="font-size:0.8rem; font-weight:700; color:var(--accent-secondary); text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:0.4rem;">
+                ${post.scripture || 'Vedic Scripture'} • ${post.chapter || ''} ${post.verse || ''}
+              </span>
+              <div class="sanskrit">${post.sanskritText}</div>
+              <div class="translation">"${post.englishTranslation || ''}"</div>
+              ${post.practicalLesson ? `
+                <div style="margin-top:1.2rem; padding-top:1rem; border-top:1px dashed var(--border-color);">
+                  <span class="lesson-badge">🌿 Practical Life Lesson</span>
+                  <p style="color:var(--text-primary); font-size:1.05rem; line-height:1.65;">${post.practicalLesson}</p>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+
+          <!-- Historical Box if History -->
+          ${post.historicalSignificance ? `
+            <div style="background:var(--bg-primary); border:1px solid var(--border-color); border-left:5px solid var(--accent-primary); padding:1.5rem; border-radius:var(--radius-md); margin-bottom:2rem;">
+              <h4 style="color:var(--accent-primary); margin-bottom:0.5rem; font-size:1.05rem;">
+                🏛️ Historical Significance
+              </h4>
+              <p style="font-size:1rem; color:var(--text-primary); line-height:1.65; margin-bottom:0.5rem;">
+                ${post.historicalSignificance}
+              </p>
+              ${post.sources ? `
+                <span style="font-size:0.8rem; color:var(--text-muted); display:block;">Reference: ${post.sources}</span>
+              ` : ''}
+            </div>
+          ` : ''}
+
+          <!-- Main Article Prose -->
+          <div class="article-prose">
+            ${post.content || `<p>${post.shortDescription || ''}</p>`}
+          </div>
+
+          <!-- Social Share Bar -->
+          <div class="article-share-bar">
+            <div>
+              <strong style="color:var(--text-primary); font-size:0.95rem; display:block; margin-bottom:0.25rem;">
+                Share this wisdom with your family & friends
+              </strong>
+              <span style="font-size:0.82rem; color:var(--text-muted);">
+                Spread the knowledge and inspiration of Bharat.
+              </span>
+            </div>
+
+            <div class="share-buttons">
+              <!-- WhatsApp Share -->
+              <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(post.title + ' — ' + currentUrl)}" target="_blank" rel="noopener noreferrer" class="btn-share whatsapp" title="Share on WhatsApp">
+                ${Icons.whatsapp} WhatsApp
+              </a>
+
+              <!-- Copy Link -->
+              <button class="btn-share" onclick="copyToClipboard(window.location.href, 'Article link copied to clipboard!')" title="Copy Article Link">
+                ${Icons.copy} Copy Link
+              </button>
+            </div>
+          </div>
+
+          <!-- Article Tags -->
+          ${post.tags && post.tags.length > 0 ? `
+            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin-top:1.5rem;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--text-muted);">Tagged in:</span>
+              ${post.tags.map(t => `<a href="search.html?q=${encodeURIComponent(t)}" class="section-tag" style="margin:0;">#${t}</a>`).join('')}
+            </div>
+          ` : ''}
+
+          <!-- Back to Archive -->
+          <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <a href="index.html" class="btn btn-secondary">
+              ${Icons.arrowLeft} Back to Homepage
+            </a>
+            <a href="archive.html" class="btn btn-primary">
+              Explore More in Archive
+            </a>
+          </div>
+        </article>
+      `;
+
+      // Render Related Posts
+      const related = StorageManager.getAll(false)
+        .filter(p => p.id !== post.id && (p.category === post.category || p.type === post.type))
+        .slice(0, 3);
+
+      const relGrid = document.getElementById("related-posts-grid");
+      if (related.length > 0) {
+        relGrid.innerHTML = related.map(rel => `
+          <article class="article-card">
+            <div class="article-card-image" style="height:170px;">
+              <img src="${rel.coverImage || 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80'}" alt="${rel.title}" loading="lazy">
+              <span class="card-category-badge">${rel.category}</span>
+            </div>
+            <div class="article-card-body">
+              <h4 style="font-size:1.15rem; margin-bottom:0.5rem;">
+                <a href="post.html?id=${rel.id}" style="color:var(--text-primary);">${rel.title}</a>
+              </h4>
+              <p style="font-size:0.88rem; color:var(--text-secondary); line-height:1.5; margin-bottom:1rem; flex-grow:1;">
+                ${rel.shortDescription?.slice(0, 85) || ''}...
+              </p>
+              <a href="post.html?id=${rel.id}" class="btn-link" style="font-weight:700; font-size:0.85rem;">
+                Read ${Icons.arrowRight}
+              </a>
+            </div>
+          </article>
+        `).join('');
+      } else {
+        relGrid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:var(--text-muted);">Explore our category pages for more articles.</p>`;
+      }
+    }
+  </script>
+</body>
+</html>
+
