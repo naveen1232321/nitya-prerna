@@ -24,3 +24,4 @@ window.MONGO_CONFIG = {
   dbName: "nitya_prerna",
   collectionName: "posts"
 };
+

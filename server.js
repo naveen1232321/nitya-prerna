@@ -28,11 +28,15 @@ async function connectMongoDB() {
   }
 
   try {
-    dbClient = new MongoClient(MONGODB_URI);
+    // Connect with network compression enabled (zlib is built into Node.js)
+    dbClient = new MongoClient(MONGODB_URI, {
+      compressors: ['zlib']
+    });
     await dbClient.connect();
     db = dbClient.db(DB_NAME);
     postsCollection = db.collection(COLLECTION_NAME);
     console.log(`✅ Connected successfully to MongoDB database: "${DB_NAME}"`);
+    console.log(`⚡ MongoDB Network Compression: ENABLED (zlib)`);
 
     // Ensure initial posts exist in MongoDB if empty
     const count = await postsCollection.countDocuments();
